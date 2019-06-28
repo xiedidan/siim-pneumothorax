@@ -1,18 +1,6 @@
-def rle2mask(rle, width, height):
-    mask= np.zeros(width* height)
-    array = np.asarray([int(x) for x in rle.split()])
-    starts = array[0::2]
-    lengths = array[1::2]
+from util import *
 
-    current_position = 0
-    for index, start in enumerate(starts):
-        current_position += start
-        mask[current_position:current_position+lengths[index]] = 1
-        current_position += lengths[index]
-
-    return mask.reshape(width, height)
-
-class SIIMDataset(torch.utils.data.Dataset):
+class SIIM_MaskRCNN_Dataset(torch.utils.data.Dataset):
     def __init__(self, df_path, img_dir):
         self.df = pd.read_csv(df_path)
         self.height = 256

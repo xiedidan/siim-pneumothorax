@@ -1,4 +1,28 @@
-from util import *
+from __future__ import print_function
+
+from collections import defaultdict, deque
+import datetime
+import pickle
+import time
+import torch.distributed as dist
+import errno
+
+import collections
+import os
+import numpy as np
+import torch
+import torch.utils.data
+from PIL import Image, ImageFile
+import pandas as pd
+from tqdm import tqdm
+from torchvision import transforms
+import torchvision
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
+
+from util import mask2rle, rle2mask
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class SIIM_MaskRCNN_Dataset(torch.utils.data.Dataset):
     def __init__(self, df_path, img_dir):
@@ -40,7 +64,7 @@ class SIIM_MaskRCNN_Dataset(torch.utils.data.Dataset):
 
         boxes = torch.as_tensor([[xmin, ymin, xmax, ymax]], dtype=torch.float32)
         labels = torch.ones((1,), dtype=torch.int64)
-        masks = torch.as_tensor(mask, dtype=torch.uint8)
+        masks = torch.as_tensor(mask, dtype=torch.float32)
 
         image_id = torch.tensor([idx])
         area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
@@ -49,7 +73,7 @@ class SIIM_MaskRCNN_Dataset(torch.utils.data.Dataset):
         target = {}
         target["boxes"] = boxes
         target["labels"] = labels
-        target["masks"] = masks
+        target["masks"] = masks / 255
         target["image_id"] = image_id
         target["area"] = area
         target["iscrowd"] = iscrowd

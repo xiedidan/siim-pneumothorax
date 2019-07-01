@@ -1,1 +1,1 @@
-from .siim import SIIMDataset
+from .siim import SIIM_MaskRCNN_Dataset

@@ -30,9 +30,7 @@ class SIIM_MaskRCNN_Dataset(torch.utils.data.Dataset):
         self.image_dir = img_dir
         self.image_info = collections.defaultdict(dict)
         
-        # TODO : combine multiple masks in the same sample
-        
-        # self.df = self.df.drop_duplicates('ImageId', keep='last').reset_index(drop=True)
+        # combine multiple masks in the same sample
         
         for index, row in tqdm(self.df.iterrows(), total=len(self.df)):
             image_id = row['ImageId']
@@ -65,7 +63,7 @@ class SIIM_MaskRCNN_Dataset(torch.utils.data.Dataset):
         masks = []
 
         for anno in info['annotations']:
-            mask = rle2mask(anno, width, height)
+            mask = rle2mask(anno, width, height).T
             mask = Image.fromarray(mask)
             mask = mask.resize((self.width, self.height), resample=Image.BILINEAR)
             mask = np.expand_dims(mask, axis=0)

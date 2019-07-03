@@ -4,7 +4,6 @@ from collections import defaultdict, deque
 import datetime
 import pickle
 import time
-import torch.distributed as dist
 import errno
 
 import collections
@@ -12,6 +11,7 @@ import os
 import numpy as np
 import torch
 import torch.utils.data
+import torch.distributed as dist
 from PIL import Image, ImageFile
 import pandas as pd
 from tqdm import tqdm
@@ -23,11 +23,12 @@ from util import mask2rle, rle2mask
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class SIIM_MaskRCNN_Dataset(torch.utils.data.Dataset):
-    def __init__(self, df_path, img_dir, lst_dir, fold=0, phrase='train'):
+    def __init__(self, df_path, img_dir, lst_dir, fold=0, phrase='train', aug=None):
         self.df = pd.read_csv(df_path)
         self.height = 256
         self.width = 256
         self.image_dir = img_dir
+        self.aug = aug
         self.image_info = collections.defaultdict(dict)
         
         # combine multiple masks in the same sample
@@ -93,6 +94,23 @@ class SIIM_MaskRCNN_Dataset(torch.utils.data.Dataset):
         target["image_id"] = image_id
         target["area"] = areas
         target["iscrowd"] = iscrowd
+
+        if self.aug is not None:
+            bbs = BoundingBoxesOnImage(
+                [BoundingBoxes(box[0], box[1], box[2], box[3]) for box in target['boxes']],
+                shape=img.shape
+            )
+            seg = SegmentationMapOnImage(
+                target['masks'],
+                shape=img.shape,
+                nb_classes=2
+            )
+
+            aug_det = self.aug.to_deterministic()
+            
+            aug_image = aug_det.augment_images(img)
+            aug_bbs = aug_det.augment_bounding_boxes(bbs)
+            aug_seg = aug_det.augment_segmentation_maps(seg)
 
         return transforms.ToTensor()(img), target
 

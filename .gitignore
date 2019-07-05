@@ -1,3 +1,7 @@
+mrcnn_model*
+*.csv
+*.tgz
+
 models/
 results/
 

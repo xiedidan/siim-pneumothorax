@@ -95,23 +95,6 @@ class SIIM_MaskRCNN_Dataset(torch.utils.data.Dataset):
         target["area"] = areas
         target["iscrowd"] = iscrowd
 
-        if self.aug is not None:
-            bbs = BoundingBoxesOnImage(
-                [BoundingBoxes(box[0], box[1], box[2], box[3]) for box in target['boxes']],
-                shape=img.shape
-            )
-            seg = SegmentationMapOnImage(
-                target['masks'],
-                shape=img.shape,
-                nb_classes=2
-            )
-
-            aug_det = self.aug.to_deterministic()
-            
-            aug_image = aug_det.augment_images(img)
-            aug_bbs = aug_det.augment_bounding_boxes(bbs)
-            aug_seg = aug_det.augment_segmentation_maps(seg)
-
         return transforms.ToTensor()(img), target
 
     def __len__(self):

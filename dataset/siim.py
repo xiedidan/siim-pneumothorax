@@ -17,16 +17,20 @@ import pandas as pd
 from tqdm import tqdm
 from torchvision import transforms
 import torchvision
+import imgaug as ia
+import imgaug.augmenters as iaa
+from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
+from imgaug.augmentables.segmaps import SegmentationMapOnImage
 
 from util import mask2rle, rle2mask
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class SIIM_MaskRCNN_Dataset(torch.utils.data.Dataset):
-    def __init__(self, df_path, img_dir, lst_dir, fold=0, phrase='train', aug=None):
+    def __init__(self, df_path, img_dir, lst_dir, fold=0, phrase='train', height=256, width=256, aug=None):
         self.df = pd.read_csv(df_path)
-        self.height = 256
-        self.width = 256
+        self.height = height
+        self.width = width
         self.image_dir = img_dir
         self.aug = aug
         self.image_info = collections.defaultdict(dict)
@@ -70,15 +74,44 @@ class SIIM_MaskRCNN_Dataset(torch.utils.data.Dataset):
             mask = np.expand_dims(mask, axis=0)
 
             pos = np.where(np.array(mask)[0, :, :])
+
             xmin = np.min(pos[1])
             xmax = np.max(pos[1])
             ymin = np.min(pos[0])
             ymax = np.max(pos[0])
 
+            '''
+            xmin = np.min(pos[0])
+            xmax = np.max(pos[0])
+            ymin = np.min(pos[1])
+            ymax = np.max(pos[1])
+            '''
+
             box = [xmin, ymin, xmax, ymax]
 
             boxes.append(box)
             masks.append(mask.squeeze())
+
+        img = np.asarray(img)
+
+        if self.aug is not None:
+            if len(masks) > 0:
+                bbs = BoundingBoxesOnImage(
+                    [BoundingBox(box[0], box[1], box[2], box[3]) for box in boxes],
+                    shape=img.shape
+                )
+                
+                segs = [SegmentationMapOnImage(np.expand_dims(mask, axis=2), shape=img.shape, nb_classes=2) for mask in masks]
+            
+                aug_det = self.aug.to_deterministic()
+
+                aug_img = aug_det.augment_image(img)
+                aug_bbs = aug_det.augment_bounding_boxes(bbs).clip_out_of_image()
+                aug_segs = [aug_det.augment_segmentation_maps(seg) for seg in segs]
+
+                img = aug_img.transpose((1, 2, 0))
+                boxes = aug_bbs.to_xyxy_array()
+                masks = [aug_seg.get_arr_int() for aug_seg in aug_segs]
 
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
         masks = torch.as_tensor(np.stack(masks, axis=0), dtype=torch.float32)

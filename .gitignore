@@ -1,7 +1,10 @@
 mrcnn_model*
 *.csv
 *.tgz
+*.pth
+*.bin
 
+.vscode/
 models/
 results/
 

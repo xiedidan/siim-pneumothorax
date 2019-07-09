@@ -109,9 +109,35 @@ class SIIM_MaskRCNN_Dataset(torch.utils.data.Dataset):
                 aug_bbs = aug_det.augment_bounding_boxes(bbs).clip_out_of_image()
                 aug_segs = [aug_det.augment_segmentation_maps(seg) for seg in segs]
 
-                img = aug_img.transpose((1, 2, 0))
-                boxes = aug_bbs.to_xyxy_array()
-                masks = [aug_seg.get_arr_int() for aug_seg in aug_segs]
+                # if all bboxes are moved out of image
+                # then we just use the original sample
+                if len(aug_bbs.to_xyxy_array()) > 0:
+                    _img = aug_img.copy()
+                    # boxes = aug_bbs.to_xyxy_array()
+                    _masks = [aug_seg.get_arr_int() * 255 for aug_seg in aug_segs]
+
+                    # recreate bboxes from masks to keep tight
+                    _boxes = []
+                    for _mask in _masks:
+                        _mask = np.expand_dims(_mask, axis=0)
+
+                        pos = np.where(np.array(_mask)[0, :, :])
+
+                        # double check
+                        if len(pos[1]) > 0:
+                            xmin = np.min(pos[1])
+                            xmax = np.max(pos[1])
+                            ymin = np.min(pos[0])
+                            ymax = np.max(pos[0])
+
+                            box = [xmin, ymin, xmax, ymax]
+                            _boxes.append(box)
+
+                    # the last check
+                    if len(_boxes) > 0:
+                        img = _img
+                        boxes = _boxes
+                        masks = _masks
 
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
         masks = torch.as_tensor(np.stack(masks, axis=0), dtype=torch.float32)

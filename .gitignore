@@ -3,6 +3,7 @@ mrcnn_model*
 *.tgz
 *.pth
 *.bin
+*.pkl
 
 .vscode/
 models/

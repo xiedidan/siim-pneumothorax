@@ -50,7 +50,7 @@ class SIIM_MaskRCNN_Dataset(torch.utils.data.Dataset):
                     self.image_info[image_id]["image_path"] = image_path
                     self.image_info[image_id]["annotations"] = [row[" EncodedPixels"].strip()]
 
-        list_file = os.path.join(lst_dir, '{}-{}.csv'.format(phrase, fold))
+        list_file = os.path.join(lst_dir, '{}_{}.csv'.format(phrase, fold))
         list_pd = pd.read_csv(list_file)
 
         self.sample_list = list(list_pd['ImageId'])

@@ -35,19 +35,16 @@ SEED = 2019
 n_acc = 64 // args.bs #gradinet accumulation steps
 
 data_path = '../data/siim-pneumothorax'
-if args.size==256:
-    TRAIN = os.path.join(data_path, 'train_png_{}'.format(args.size))
-    TEST = os.path.join(data_path, 'test_png_{}'.format(args.size))
-    MASKS = os.path.join(data_path, 'mask_png_{}'.format(args.size))
-else:
-    TRAIN = os.path.join(data_path, 'train_png')
-    TEST = os.path.join(data_path, 'test_png')
-    MASKS = os.path.join(data_path, 'mask_png')
+TRAIN = os.path.join(data_path, 'train_png')
+TEST = os.path.join(data_path, 'test_png')
+MASKS = os.path.join(data_path, 'mask_png')
 noise_th = 75.0*(args.size/128.0)**2 #threshold for the number of predicted pixels
 best_thr0 = 0.2 #preliminary value of the threshold for metric calculation
 stats = {
     256: ([0.540,0.540,0.540],[0.264,0.264,0.264]),
-    512: ([0.491,0.49,0.49],[0.249,0.248,0.248])
+    512: ([0.529,0.529,0.529],[0.259,0.259,0.259]),
+    768: ([0.525,0.525,0.525],[0.256,0.256,0.256]),
+    1024: ([0.521,0.521,0.521],[0.254,0.254,0.254])
 }
 
 # distribution initialization

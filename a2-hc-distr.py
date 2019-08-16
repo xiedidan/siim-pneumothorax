@@ -262,9 +262,7 @@ for fold in range(args.fold):
     learn.clip_grad(1.0)
     set_BN_momentum(learn.model)
     
-    #fit the decoder part of the model keeping the encode frozen
     lr = 1e-3
-    learn.fit_one_cycle(6, lr, callbacks = [AccumulateStep(learn,n_acc)])
     
     #fit entire model with saving on the best epoch
     learn.unfreeze()
@@ -274,4 +272,3 @@ for fold in range(args.fold):
     
     gc.collect()
     torch.cuda.empty_cache()
-

@@ -259,11 +259,11 @@ for fold in range(args.fold):
     
     #fit the decoder part of the model keeping the encode frozen
     lr = 1e-3
-    learn.fit_one_cycle(6, lr, callbacks = [AccumulateStep(learn,n_acc)])
+    #learn.fit_one_cycle(6, lr, callbacks = [AccumulateStep(learn,n_acc)])
     
     #fit entire model with saving on the best epoch
     learn.unfreeze()
-    learn.fit_one_cycle(12, slice(lr/80, lr/2), callbacks=[AccumulateStep(learn,n_acc)])
+    learn.fit_one_cycle(12, slice(lr/25, lr), callbacks=[AccumulateStep(learn,n_acc)])
 
     learn.save('hc_{}_{}_fold{}'.format(now.strftime('%Y%m%d-%H%M%S'), args.size, fold))
     

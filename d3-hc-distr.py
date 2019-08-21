@@ -38,8 +38,8 @@ data_path = '../../data/siim-pneumothorax'
 TRAIN = os.path.join(data_path, 'ori_train_png')
 TEST = os.path.join(data_path, 'ori_test_png')
 MASKS = os.path.join(data_path, 'ori_mask_png')
-noise_th = 75.0*(args.size/128.0)**2 #threshold for the number of predicted pixels
-best_thr0 = 0.2 #preliminary value of the threshold for metric calculation
+noise_th = 35.0*(args.size/128.0)**2 #threshold for the number of predicted pixels
+best_thr0 = 0.15 #preliminary value of the threshold for metric calculation
 stats = {
     256: ([0.491,0.49,0.49],[0.249,0.248,0.248]),
     512: ([0.491,0.49,0.49],[0.249,0.248,0.248]),

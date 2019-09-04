@@ -221,6 +221,9 @@ class SegmentationLabelList(SegmentationLabelList):
 class SegmentationItemList(SegmentationItemList):
     _label_cls = SegmentationLabelList
 
+    def open(self, fn):
+        return open_image(fn, convert_mode='RGBA')
+
 # Setting transformations on masks to False on test set
 def transform(self, tfms:Optional[Tuple[TfmList,TfmList]]=(None,None), **kwargs):
     if not tfms: tfms=(None,None)
@@ -241,8 +244,8 @@ def get_data(fold):
             .label_from_func(lambda x : str(x).replace('ori_train', 'ori_mask'), classes=[0,1])
             .add_test(Path(TEST).ls(), label=None)
             .transform(get_transforms(), size=args.size, tfm_y=True)
-            .databunch(path=Path('.'), bs=args.bs)
-            .normalize(stats[args.size]))
+            .databunch(path=Path('.'), bs=args.bs))
+            #.normalize(stats[args.size]))
     return data
 
 # ok, main
@@ -253,7 +256,7 @@ for fold in range(args.fold):
     data = get_data(fold)
     
     learn = unet_learner(data, models.resnet34, metrics=[dice], self_attention=True)
-
+    print(learn.loss_func)
     if args.checkpoint is not None:
         print('load: {}'.format('hc_{}_fold{}'.format(args.checkpoint, fold)))
         learn.load('hc_{}_fold{}'.format(args.checkpoint, fold))
